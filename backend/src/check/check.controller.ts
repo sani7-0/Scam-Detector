@@ -158,6 +158,3 @@ export class CheckController {
     return this.db.getStats();
   }
 }
-constructor1(@Inject(ML_PREDICTOR) private ml: MlPredictor, ...) {
-  console.log('ML_PREDICTOR resolved to:', ml.constructor.name);
-}

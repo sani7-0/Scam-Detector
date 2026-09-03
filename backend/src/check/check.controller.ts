@@ -43,7 +43,7 @@ export class CheckController {
     private db: SupabaseService,
     private http: HttpService,
   ) 
-  constructor(@Inject(ML_PREDICTOR) private ml: MlPredictor, ...) {
+  constructor1(@Inject(ML_PREDICTOR) private ml: MlPredictor, ...) {
   console.log('ML_PREDICTOR resolved to:', ml.constructor.name);
 }
   {}

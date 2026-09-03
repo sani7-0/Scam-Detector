@@ -39,10 +39,12 @@ function normalizeIfUrl(input: string): string | null {
 @Controller('check')
 export class CheckController {
   constructor(
-    @Inject(ML_PREDICTOR) private ml: MlPredictor,
-    private db: SupabaseService,
-    private http: HttpService,
-  ) 
+  @Inject(ML_PREDICTOR) private ml: MlPredictor,
+  private db: SupabaseService,
+  private http: HttpService,
+) {
+  console.log('ML_PREDICTOR resolved to:', ml.constructor.name);
+}
   {}
 
   // ---- shared handlers, reused by both the explicit routes and /check (auto) ----

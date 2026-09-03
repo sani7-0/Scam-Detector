@@ -7,6 +7,9 @@ import { CheckModule } from './check/check.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { MlClientModule } from './ml-client/ml-client.module';
 import { HealthModule } from './health/health.module';
+import { MeModule } from './me/me.module';
+import { AdminModule } from './admin/admin.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -26,6 +29,9 @@ import { HealthModule } from './health/health.module';
     SupabaseModule,
     MlClientModule,
     HealthModule,
+    AuthModule,
+    MeModule,
+    AdminModule
   ],
 })
 export class AppModule {}

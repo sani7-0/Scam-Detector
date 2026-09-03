@@ -40,17 +40,20 @@ export class SupabaseService {
     return !!data;
   }
 
-  async logResult(hash: string, type: string, result: any) {
-    const { error } = await this.client.from('results').insert({
-      input_hash: hash,
-      input_type: type,
-      risk_score: result.risk_score,
-      verdict: result.verdict,
-      category: result.category ?? null,
-      model_source: result.model_source ?? null,
-    });
-    if (error) console.error('log write error', error);
-  }
+  async logResult(hash: string, type: string, result: any, userId?: string | null, content?: string | null) {
+  const { error } = await this.client.from('results').insert({
+    input_hash: hash,
+    input_type: type,
+    risk_score: result.risk_score,
+    verdict: result.verdict,
+    category: result.category ?? null,
+    confidence: result.confidence ?? null,
+    model_source: result.source ?? null,
+    user_id: userId ?? null,
+    content: content ?? null,
+  });
+  if (error) console.error('log write error', error);
+}
   async getStats() {
     const { data, error } = await this.client.from('results').select('category').eq('verdict', 'scam');
       if (error) { console.error('stats query error', error); return []; }
@@ -60,5 +63,55 @@ export class SupabaseService {
       counts[cat] = (counts[cat] ?? 0) + 1;
   }
   return Object.entries(counts).map(([category, flagged_count]) => ({ category, flagged_count }));
+}
+  async getUserFromToken(token: string) {
+  const { data, error } = await this.client.auth.getUser(token);
+  if (error || !data?.user) return null;
+  return { id: data.user.id, email: data.user.email };
+}
+
+async getUserRole(userId: string): Promise<string> {
+  const { data } = await this.client.from('profiles').select('role').eq('id', userId).maybeSingle();
+  if (data) return data.role;
+  await this.client.from('profiles').insert({ id: userId, role: 'user' }); // first time seeing this user
+  return 'user';
+}
+
+async getAdminStats() {
+  const { data, error } = await this.client.from('results').select('verdict, category');
+  if (error) { console.error('admin stats error', error); return null; }
+  const total = data.length;
+  const scams = data.filter((r) => r.verdict === 'scam').length;
+  const byCategory: Record<string, number> = {};
+  for (const row of data) {
+    if (row.verdict === 'scam') {
+      const cat = row.category ?? 'uncategorized';
+      byCategory[cat] = (byCategory[cat] ?? 0) + 1;
+    }
+  }
+  return { total_checked: total, total_scams: scams, scam_rate: total ? +(scams / total).toFixed(3) : 0, by_category: byCategory };
+}
+
+async getRecentScams(limit = 50) {
+  const { data, error } = await this.client
+    .from('results')
+    .select('id, input_type, category, content, confidence, created_at')
+    .eq('verdict', 'scam')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) { console.error('recent scams query error', error); return []; }
+  return data;
+}
+
+async getUserStats(userId: string) {
+  const { data, error } = await this.client
+    .from('results')
+    .select('verdict, category, input_type, content, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('user stats error', error); return null; }
+  const total = data.length;
+  const scams = data.filter((r) => r.verdict === 'scam').length;
+  return { total_checked: total, total_scams: scams, scam_rate: total ? +(scams / total).toFixed(3) : 0, recent: data.slice(0, 20) };
 }
 }

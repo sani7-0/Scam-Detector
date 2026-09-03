@@ -22,6 +22,7 @@ async function bootstrap() {
     .setDescription('Detects phishing URLs, scam text/messages/job postings, and scam images (via OCR)')
     .setVersion('1.0')
     .addTag('check')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);

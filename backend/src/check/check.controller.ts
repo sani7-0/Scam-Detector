@@ -71,12 +71,11 @@ function normalizeIfUrl(input: string): string | null {
 @Controller('check')
 export class CheckController {
   constructor(
-    @Inject(ML_PREDICTOR) private ml: MlPredictor,
-    private db: SupabaseService,
-    private http: HttpService,
-  ) {}
-  constructor1(@Inject(ML_PREDICTOR) private ml: MlPredictor, ...) {
-  console.log('ML_PREDICTOR resolved to:', ml.constructor.name);
+  @Inject(ML_PREDICTOR) private ml: MlPredictor,
+  private db: SupabaseService,
+  private http: HttpService,
+) {
+  console.log('ML_PREDICTOR resolved to:', this.ml.constructor.name);
 }
   private async handleUrl(
     url: string,

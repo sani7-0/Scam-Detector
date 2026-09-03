@@ -42,7 +42,11 @@ export class CheckController {
     @Inject(ML_PREDICTOR) private ml: MlPredictor,
     private db: SupabaseService,
     private http: HttpService,
-  ) {}
+  ) 
+  constructor(@Inject(ML_PREDICTOR) private ml: MlPredictor, ...) {
+  console.log('ML_PREDICTOR resolved to:', ml.constructor.name);
+}
+  {}
 
   // ---- shared handlers, reused by both the explicit routes and /check (auto) ----
 

@@ -43,9 +43,6 @@ export class CheckController {
     private db: SupabaseService,
     private http: HttpService,
   ) 
-  constructor1(@Inject(ML_PREDICTOR) private ml: MlPredictor, ...) {
-  console.log('ML_PREDICTOR resolved to:', ml.constructor.name);
-}
   {}
 
   // ---- shared handlers, reused by both the explicit routes and /check (auto) ----
@@ -158,4 +155,7 @@ export class CheckController {
   async getStats() {
     return this.db.getStats();
   }
+}
+constructor1(@Inject(ML_PREDICTOR) private ml: MlPredictor, ...) {
+  console.log('ML_PREDICTOR resolved to:', ml.constructor.name);
 }

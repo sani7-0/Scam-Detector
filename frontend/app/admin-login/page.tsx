@@ -1,0 +1,6 @@
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { AppPage } from '@/components/scam-detector'
+import { signIn } from '@/lib/mock-api'
+export default function AdminLoginPage(){const router=useRouter();const [error,setError]=useState('');const submit=async(e:React.FormEvent<HTMLFormElement>)=>{e.preventDefault();const form=new FormData(e.currentTarget);const response=await signIn(String(form.get('email')),String(form.get('password')));if(response.error||response.user?.role!=='admin'){setError('Admin access was not recognized. Use an admin email.');return}sessionStorage.setItem('mock-session',JSON.stringify(response.user));router.push('/admin')};return <AppPage title="Admin access"><form className="auth-card" onSubmit={submit}><p>Private operations console. This entry point is intentionally unlisted.</p><label>Email address</label><input name="email" required type="email" placeholder="admin@yourdomain.com"/><label>Password</label><input name="password" required minLength={8} type="password" placeholder="8 characters minimum"/><button className="primary-button full">Open console</button>{error&&<p className="form-error">{error}</p>}</form></AppPage>}

@@ -1,0 +1,39 @@
+{
+  "model_name": "FraudJobGuard",
+  "version": "3.0.0-fast",
+  "dataset": "fake_job_postings.csv",
+  "target": "fraudulent",
+  "labels": {
+    "0": "legitimate",
+    "1": "fraudulent"
+  },
+  "threshold": 0.8899999999999996,
+  "metrics": {
+    "accuracy": 0.9795454545454545,
+    "precision": 0.8425925925925926,
+    "recall": 0.7109375,
+    "f1": 0.7711864406779662,
+    "roc_auc": 0.9747026771496815,
+    "pr_auc": 0.8116320961375291,
+    "confusion_matrix": [
+      [
+        2495,
+        17
+      ],
+      [
+        37,
+        91
+      ]
+    ]
+  },
+  "vectorization": "TF-IDF word unigrams+bigrams",
+  "classifier": "ComplementNB",
+  "training_split": "70% train / 15% validation / 15% test",
+  "max_text_lengths": {
+    "title": 400,
+    "company_profile": 600,
+    "description": 1800,
+    "requirements": 1400,
+    "benefits": 800
+  }
+}

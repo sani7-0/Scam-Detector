@@ -6,3 +6,4 @@ pytesseract
 pillow
 pyzbar
 python-multipart
+numpy

@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Scam Detector settings</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div class="mark">SD</div>
+      <div><strong>Scam Detector settings</strong><span>Connect your backend</span></div>
+    </header>
+
+    <label class="eyebrow">BACKEND API URL</label>
+    <input id="api" placeholder="https://your-backend.onrender.com/v1">
+
+    <label class="eyebrow" style="margin-top:16px;display:block">WARN BEFORE VISITING RISKY SITES</label>
+    <label style="display:flex;align-items:center;gap:8px;margin:8px 0 16px;color:#e0e0e0;font-size:12px">
+      <input type="checkbox" id="proactive">
+      Show a warning page before I land on a site flagged as a likely scam
+    </label>
+
+    <button id="save" class="primary">Save settings</button>
+    <p id="saved" class="status"></p>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

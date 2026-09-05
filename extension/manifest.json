@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Scam Detector",
+  "version": "1.1.0",
+  "description": "Scan the current website and its links for scam signals, get warned before visiting risky sites, and check any link or selected text from the right-click menu.",
+  "permissions": ["activeTab", "scripting", "storage", "contextMenus", "webNavigation"],
+  "host_permissions": ["<all_urls>"],
+  "action": { "default_title": "Scan this website", "default_popup": "popup.html" },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "options_page": "options.html",
+  "content_scripts": [{ "matches": ["<all_urls>"], "js": ["content.js"], "run_at": "document_idle" }]
+}

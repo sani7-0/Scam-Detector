@@ -11,7 +11,7 @@ async function bootstrap() {
 
   app.use(helmet());
   app.use(compression());
-  app.enableCors({ origin: 'https://scam-detector-taupe.vercel.app' }); // tighten to real origins before public launch
+  app.enableCors({ origin: ['https://scam-detector-taupe.vercel.app', 'http://localhost:3000',], }); // tighten to real origins before public launch
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());

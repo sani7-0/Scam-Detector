@@ -3,9 +3,9 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Scam Detector — Get a second opinion',
+  title: 'Scam Detector',
   description: 'Spot the subtle signs of fraud in links, messages, and checkout pages before you click, pay, or share.',
-  generator: 'v0.app',
+  generator: 'Deresani',
 }
 
 export const viewport: Viewport = {

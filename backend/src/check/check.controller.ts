@@ -75,8 +75,7 @@ export class CheckController {
     private db: SupabaseService,
     private http: HttpService,
   ) {}
-  
-}
+
   private async handleUrl(
     url: string,
     userId?: string,

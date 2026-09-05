@@ -4,7 +4,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Scam Detector',
-  description: 'Spot the subtle signs of fraud in links, messages, and checkout pages before you click, pay, or share.',
+  description: '"AI-powered scam detection for suspicious URLs, messages, and online threats.',
   generator: 'Deresani',
 }
 

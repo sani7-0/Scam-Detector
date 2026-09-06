@@ -2,12 +2,14 @@ from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 import joblib
 import json
-import xgboost as xgb
+import pandas as pd
+from xgboost import XGBClassifier
 import pytesseract
 from PIL import Image
 import io
 
 from job_preprocessing import make_text, text_to_job_input
+from url_preprocessing import calculate_features, NUMERIC_COLS
 
 app = FastAPI(title="Scam Detector ML Service")
 
@@ -21,15 +23,18 @@ text_model = joblib.load("models/sms_model.pkl")
 vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
 
 # URL model
-# TF-IDF vectorizer is joblib-pickled (small, stable sklearn object),
-# and the XGBoost model is saved/loaded with XGBoost's own native format
-# (JSON), which is explicitly designed to be portable across versions
-# and environments — this is what fixed the earlier "input stream
-# corrupted" error.
-url_vectorizer = joblib.load("models/url_tfidf_vectorizer.pkl")
-
-url_booster = xgb.Booster()
-url_booster.load_model("models/url_xgb_model.json")
+# Real model from the team: a combined preprocessor (TF-IDF on the URL
+# string + the 12 engineered numeric features together) feeding an
+# XGBClassifier. The classifier is saved in XGBoost's native JSON format
+# and loaded through the sklearn wrapper API (XGBClassifier().load_model()),
+# matching exactly how the model team's own url_checker_v3.py reference
+# script uses it — not the raw xgb.Booster()/DMatrix API from the earlier
+# placeholder version.
+url_preprocessor = joblib.load("models/url_preprocessor.joblib")
+url_model = XGBClassifier()
+url_model.load_model("models/url_xgb_model.json")
+with open("models/url_tld_legit_probs.json") as f:
+    URL_TLD_PROBS = json.load(f)
 
 # Job posting model (FraudJobGuard) — a full sklearn Pipeline
 # (TF-IDF -> ComplementNB), but it expects a specifically engineered text
@@ -98,18 +103,22 @@ def score_text(text: str) -> dict:
 
 
 def score_url(url: str) -> dict:
-    # TF-IDF transform, then hand the sparse matrix to the Booster directly.
-    X = url_vectorizer.transform([url])
-    dmatrix = xgb.DMatrix(X)
+    features = calculate_features(url, URL_TLD_PROBS)
+    row = pd.DataFrame([features])
+    X = row[["URL"] + NUMERIC_COLS]
+    X_transformed = url_preprocessor.transform(X)
 
-    p = float(url_booster.predict(dmatrix)[0])
+    # risk_score is always P(phishing) — class index 1 — regardless of
+    # which class the model's own argmax would pick, so this stays
+    # consistent with how the SMS/job scores are computed above.
+    p = float(url_model.predict_proba(X_transformed)[0][1])
 
     return {
         "risk_score": round(p, 4),
         "verdict": to_verdict(p),
         "category": "phishing_url" if p >= 0.7 else None,
         "confidence": round(max(p, 1 - p), 4),
-        "source": "url_tfidf_xgboost_v1",
+        "source": "url_xgboost_v3",
     }
 
 

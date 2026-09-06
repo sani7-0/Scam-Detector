@@ -8,4 +8,4 @@ pillow
 pyzbar
 python-multipart
 numpy
-xgboost==3.2.0
+xgboost==3.4.1

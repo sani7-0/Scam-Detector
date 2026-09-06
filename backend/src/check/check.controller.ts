@@ -26,6 +26,7 @@ import { firstValueFrom } from 'rxjs';
 import { createHash } from 'crypto';
 
 import { SupabaseService } from '../supabase/supabase.service';
+
 import { ML_PREDICTOR } from '../ml-client/ml-client.module';
 
 import type {
@@ -66,6 +67,7 @@ function normalizeIfUrl(input: string): string | null {
   }
 }
 
+
 @ApiTags('check')
 @UseGuards(ThrottlerGuard, OptionalAuthGuard)
 @Controller('check')
@@ -80,27 +82,18 @@ export class CheckController {
     url: string,
     userId?: string,
   ): Promise<PredictionResult> {
-    const domain = new URL(url).hostname;
 
-    if (await this.db.isAllowlisted(domain)) {
-      return {
-        risk_score: 0,
-        verdict: 'safe',
-        category: null,
-        confidence: 1,
-        source: 'allowlist',
-      };
-    }
-
-    const h = hash(url);
-    const cached = await this.db.getCached(h);
-
-    if (cached) return cached;
+    // URL checks now go directly to the NEW XGBoost URL model.
+    // The old Tranco/allowlist check has been removed.
 
     const result = await this.ml.predictUrl(url);
 
-    await this.db.setCache(h, result);
-    await this.db.logResult(h, 'url', result, userId);
+    await this.db.logResult(
+      hash(url),
+      'url',
+      result,
+      userId,
+    );
 
     return result;
   }
@@ -110,6 +103,7 @@ export class CheckController {
     userId?: string,
   ): Promise<PredictionResult> {
     const h = hash(text);
+
     const cached = await this.db.getCached(h);
 
     if (cached) return cached;
@@ -117,7 +111,13 @@ export class CheckController {
     const result = await this.ml.predictText(text);
 
     await this.db.setCache(h, result);
-    await this.db.logResult(h, 'text', result, userId);
+
+    await this.db.logResult(
+      h,
+      'text',
+      result,
+      userId,
+    );
 
     return result;
   }
@@ -149,12 +149,18 @@ export class CheckController {
 
   @Post('url')
   @ApiOperation({ summary: 'Check a URL for phishing risk' })
-  @ApiResponse({ status: 201, type: PredictionResultDto })
+  @ApiResponse({
+    status: 201,
+    type: PredictionResultDto,
+  })
   checkUrl(
     @Body() dto: CheckUrlDto,
     @CurrentUser() user: any,
   ) {
-    return this.handleUrl(dto.url, user?.id);
+    return this.handleUrl(
+      dto.url,
+      user?.id,
+    );
   }
 
   @Post('text')
@@ -162,17 +168,24 @@ export class CheckController {
     summary:
       'Check text, a message, post, or job listing for scam signals',
   })
-  @ApiResponse({ status: 201, type: PredictionResultDto })
+  @ApiResponse({
+    status: 201,
+    type: PredictionResultDto,
+  })
   checkText(
     @Body() dto: CheckTextDto,
     @CurrentUser() user: any,
   ) {
-    return this.handleText(dto.text, user?.id);
+    return this.handleText(
+      dto.text,
+      user?.id,
+    );
   }
 
   @Post('image')
   @ApiOperation({
-    summary: 'Check an uploaded image (OCR + scam text/QR analysis)',
+    summary:
+      'Check an uploaded image (OCR + scam text/QR analysis)',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -186,7 +199,10 @@ export class CheckController {
       },
     },
   })
-  @ApiResponse({ status: 201, type: PredictionResultDto })
+  @ApiResponse({
+    status: 201,
+    type: PredictionResultDto,
+  })
   @UseInterceptors(FileInterceptor('file'))
   checkImage(
     @UploadedFile() file: Express.Multer.File,
@@ -204,7 +220,10 @@ export class CheckController {
     summary:
       'Auto-detect whether the input is a URL, text, or image, and check it accordingly',
   })
-  @ApiConsumes('application/json', 'multipart/form-data')
+  @ApiConsumes(
+    'application/json',
+    'multipart/form-data',
+  )
   @ApiBody({
     schema: {
       oneOf: [
@@ -230,7 +249,10 @@ export class CheckController {
       ],
     },
   })
-  @ApiResponse({ status: 201, type: PredictionResultDto })
+  @ApiResponse({
+    status: 201,
+    type: PredictionResultDto,
+  })
   @UseInterceptors(FileInterceptor('file'))
   async checkAuto(
     @UploadedFile() file: Express.Multer.File,
@@ -256,8 +278,14 @@ export class CheckController {
     const normalizedUrl = normalizeIfUrl(input);
 
     return normalizedUrl
-      ? this.handleUrl(normalizedUrl, user?.id)
-      : this.handleText(input, user?.id);
+      ? this.handleUrl(
+          normalizedUrl,
+          user?.id,
+        )
+      : this.handleText(
+          input,
+          user?.id,
+        );
   }
 
   @Post('image-url')
@@ -265,7 +293,10 @@ export class CheckController {
     summary:
       "Check an image the backend fetches from a URL (e.g. an extension's right-clicked image src)",
   })
-  @ApiResponse({ status: 201, type: PredictionResultDto })
+  @ApiResponse({
+    status: 201,
+    type: PredictionResultDto,
+  })
   async checkImageUrl(
     @Body() dto: CheckImageUrlDto,
   ) {
@@ -294,7 +325,8 @@ export class CheckController {
 
   @Get('stats')
   @ApiOperation({
-    summary: 'Aggregate counts of flagged results by category',
+    summary:
+      'Aggregate counts of flagged results by category',
   })
   async getStats() {
     return this.db.getStats();
